@@ -3,10 +3,16 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useChat } from "@ai-sdk/react"
 import { useState } from "react"
+import { DefaultChatTransport } from "ai"
+import { MyUIMessage } from "@/app/api/message-metadata/types"
 
-export default function ChatPage(){
+export default function MetadataChatPage(){
     const [input , setInput] = useState("")
-    const {messages , sendMessage , status , error , stop} = useChat()
+    const {messages , sendMessage , status , error , stop} = useChat<MyUIMessage>({
+        transport:new DefaultChatTransport({
+            api:"/api/message-metadata"
+        })
+    })
 
     //to check how messages look like check /public.image.png
 
@@ -39,6 +45,18 @@ export default function ChatPage(){
                                 default:return null
                         }
                     })}
+                    <div className="flex items-center gap-2 mt-2 text-xs text-gray-400">
+                        {message.metadata?.totalTokens && (
+                            <div>{message.metadata.totalTokens} tokens</div>
+                        )} 
+                        {message.metadata?.createdAt &&(
+                            <div>@{new Date(message.metadata.createdAt).toLocaleTimeString([],{
+                                hour:"2-digit",
+                                minute:"2-digit",
+                                hour12:true
+                            })}</div>
+                        )}
+                    </div>
                 </div>
             ))}
             {(status === "submitted" || status ==="streaming")&&(

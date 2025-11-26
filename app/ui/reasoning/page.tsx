@@ -3,10 +3,15 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { useChat } from "@ai-sdk/react"
 import { useState } from "react"
+import { DefaultChatTransport } from "ai"
 
-export default function ChatPage(){
+export default function ReasoningChatPage(){
     const [input , setInput] = useState("")
-    const {messages , sendMessage , status , error , stop} = useChat()
+    const {messages , sendMessage , status , error , stop} = useChat({
+        transport : new DefaultChatTransport({
+            api:"/api/reasoning"
+        })
+    })
 
     //to check how messages look like check /public.image.png
 
@@ -17,7 +22,9 @@ export default function ChatPage(){
     };
 
     return (
+        
         <div className="flex flex-col w-full max-w-md py-24 mx-auto stretch">
+             
             {error && <div className="text-red-500 mb-4">{error.message}</div>}
 
             {messages.map((message)=>(
@@ -27,13 +34,19 @@ export default function ChatPage(){
                     </div>
                     {message.parts.map((part , index)=>{
                         switch(part.type){
+                            case "reasoning" :
+                                return (
+                                    <div key={`${message.id}-${index}`} className="text-sm text-blue-500">
+                                        {part.text}
+                                    </div>
+                                )
                             case "text" :
                                 return(
                                     <div  key={`${message.id}-${index}`}
                     className="whitespace-pre-wrap">
-                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                       {part.text}
-                                     </ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                {part.text}
+              </ReactMarkdown>
                                     </div>
                                 );
                                 default:return null
@@ -77,6 +90,7 @@ export default function ChatPage(){
           )}
         </div>
       </form>
+      
         </div>
     )
 }
